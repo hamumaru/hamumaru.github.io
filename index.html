@@ -1,0 +1,433 @@
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title>test_m3-05</title>
+    </head>
+<body>
+
+<h1><font color="#3399FF" size="15">【掲示板】</font></h1>
+
+<h3><span style="background-color:#FF88FF">この掲示板は誰でも気軽に意見を交流し合う場となっています！</span></h3>
+
+<span>--------------------------------------------------</span><br>
+
+<form action=""method="post">
+
+<h4><span>【投稿・編集フォーム】</span></h4>
+
+<input type=number name=edit_num placeholder=編集番号を選択>
+
+<input type=submit name=edit_num_submit value=表示><br><br>
+
+    
+<?php
+
+$library_file="m3_05__library.txt";//全投稿保存ファイル(以下、全投ファイル)
+
+$edit_library_file="m3_05__edit_library.txt";//編集済み全投稿保存ファイル(以下、編全投ファイル)
+
+$display_file="m3_05__display.txt";//表示投稿保存ファイル(以下、表示ファイル)
+
+$waste_basket="m3_05__waste_basket.txt";//削除投稿保存ファイル(以下、削除ファイル)
+
+
+//全投ファイルが存在せず、編全投ファイルが存在する場合
+if(!file_exists($library_file)&&file_exists($edit_library_file)){
+    
+    unlink($edit_library_file);//編全投ファイルを削除
+    
+}
+
+
+//全投ファイルが存在せず、表示ファイルが存在する場合
+if(!file_exists($library_file)&&file_exists($display_file)){
+    
+    unlink($display_file);//表示ファイルを削除
+    
+}
+
+//全投ファイルが存在せず、削除ファイルが存在する場合
+if(!file_exists($library_file)&&file_exists($waste_basket)){    
+    
+    unlink($waste_basket);//削除ファイルを削除
+
+}
+
+//表示ファイルが存在せず、削除ファイルが存在する場合
+if(!file_exists($display_file)&&file_exists($waste_basket)){
+    
+    unlink($waste_basket);//削除ファイルを削除
+    
+}
+
+
+//編全投ファイルが存在せず、表示ファイルが存在する場合
+if(!file_exists($edit_library_file)&&file_exists($display_file)){
+    
+    unlink($display_file);//表示ファイルを削除
+    
+}
+
+//編全投ファイルが存在せず、削除ファイルが存在する場合
+if(!file_exists($edit_library_file)&&file_exists($waste_basket)){    
+    
+    unlink($waste_basket);//削除ファイルを削除
+
+}
+
+if(!file_exists($library_file)){//全投ファイルが存在しなければ作成
+    touch($library_file);
+}
+
+if(!file_exists($edit_library_file)){//編全投ファイルが存在しなければ作成
+    touch($edit_library_file);
+}
+
+if(!file_exists($display_file)){//表示ファイルが存在しなければ作成
+    touch($display_file);
+}
+
+if(!file_exists($waste_basket)){//削除ファイルが存在しなければ作成
+    touch($waste_basket);
+}
+
+
+$library_array=file($library_file,FILE_IGNORE_NEW_LINES);//全投ファイルを配列化
+
+$edit_library_array=file($edit_library_file,FILE_IGNORE_NEW_LINES);//編全投ファイルを配列化
+
+$display_array=file($display_file,FILE_IGNORE_NEW_LINES);//表示ファイルを配列化
+
+$sepa="<>";//先に区切りを定義
+
+$acquired_number="";//編集する投稿の番号(不可視)
+
+$acquired_name="";//フォームに表示する名前
+    
+$acquired_comment="";//フォームに表示するコメント
+
+if(isset($_POST["edit_num_submit"])){
+    
+    if(empty($_POST["edit_num"])){
+        
+        $acquired_name="";
+        
+        $acquired_comment="";//
+        
+        echo "***編集番号を選択してください***<br><br>";
+        
+    }else{//編集番号選択フォームに値が入っているとき
+        //表投配列の要素を繰り返し出力
+        foreach($display_array as $display_row){
+            //要素を分割
+            $display_factor=explode($sepa,$display_row);
+            
+            if($display_factor[0]==$_POST["edit_num"]){//要素[0]と編集番号を選択フォームが等しいとき
+                
+                $acquired_number=$display_factor[0];//投稿番号(不可視)
+                
+                $acquired_name=$display_factor[2];//編集する名前をフォームに表示させる
+                
+                $acquired_comment=$display_factor[3];//編集するコメントをフォームに表示させる
+                
+                
+            }elseif($display_factor[0]!=$_POST["edit_num"]){
+                
+                $library_lastrow=array_pop($library_array);
+                
+                $library_lastfactor=explode($sepa,$library_lastrow);//
+                
+                $acquired_number=$_POST["edit_num"];//
+                
+                
+            }
+            
+        }
+        
+    }
+
+}
+
+
+?>
+
+    <span><font color="red" size="5"> ＜注意事項＞</font></span><br>    
+
+    <span>1⃣新規投稿の場合は、編集番号を選択せずに、名前とコメントを記入し、パスワードを<b>二か所</b>に入力してください。</span><br>
+    
+    <span>2⃣投稿を編集する場合はパスワードの<b>再確認</b>はいりません。</span><br><br>
+    
+    <input type=text name=name placeholder=名前 value=<?= $acquired_name ?>><br>
+
+    <input type=text name=comment placeholder=コメント value=<?= $acquired_comment ?> ><br>    
+
+    <input type=password name=password placeholder=パスワードを入力><br>
+    
+    <input type=password name=password_2 placeholder=確認のため再入力>
+
+    <input type=hidden name=edit_number value=<?= $acquired_number ?>>
+    
+    <input type=submit name=submit value=新規投稿>
+    
+    <input type=submit name=edit_submit value=編集><br>
+
+</form>
+
+<form action=""method="post">    
+<h4><span>【削除フォーム】</span></h4>
+    
+    <input type=number name=del_num placeholder=削除番号>
+    
+    <span>・</span>
+    
+    <input type=password name=del_password placeholder=パスワードを入力>
+    
+    <input type=submit name=del_submit value=削除>
+
+</form>
+
+<?php
+
+if(isset($_POST["submit"])){//
+    
+    $N_or_E="";
+    
+    $name=$_POST["name"];//
+    
+    $com=$_POST["comment"];//
+    
+    $date=date("Y/m/d H:i:s");//
+    
+    $password=$_POST["password"];
+    
+    $library_lastrow=array_pop($library_array);//
+    
+    $library_lastfactor=explode($sepa,$library_lastrow);//
+    
+    if($library_lastrow==false){//
+        
+        $num=1;//
+        
+    }else{
+        
+        $num=intval($library_lastfactor[0]);//
+        
+        $num++;//
+        
+    }
+
+   if(!empty($_POST["name"])&&!empty($_POST["comment"])&&!empty($_POST["password"])){//
+   
+           if($_POST["password"]==$_POST["password_2"]){
+               
+               $N_or_E="【N】";
+               
+               $str=$num.$sepa.$N_or_E.$sepa.$name.$sepa.$com.$sepa.$date.$sepa.$password;//
+               
+               $fp=fopen($library_file,"a");//
+               
+               fwrite($fp,$str.PHP_EOL);//
+               
+               fclose($fp);//
+               
+               $fp=fopen($display_file,"a");//
+               
+               fwrite($fp,$str.PHP_EOL);//
+               
+               fclose($fp);
+               
+               echo "<br>-------新規投稿が完了しました。-------";//
+               
+           }else{
+               
+               echo "<br>-------再入力したパスワードが一致していません。-------";//
+               
+           }
+       
+   }else{
+        
+        echo "<br>-------名前・コメント・パスワードは、<b>全て</b>入力してください。-------";//
+        
+    }
+    
+    
+}elseif(isset($_POST["del_submit"])){//
+    
+    $del_password=$_POST["del_password"];
+    
+    $edit_library_array=file($edit_library_file,FILE_IGNORE_NEW_LINES);
+    
+    
+    if(!empty($_POST["del_num"])&&!empty($del_password)){
+        
+        $fp=fopen($display_file,"w");//
+            
+        ftruncate($fp,0);//
+            
+        fclose($fp);
+        
+        foreach($display_array as $display_factors){
+            
+            $display_factor=explode($sepa,$display_factors);
+            
+            if($display_factor[0]==$_POST["del_num"]){
+
+                if($display_factor[5]==$_POST["del_password"]){
+
+                    $del_date=date("Y/m/d H:i:s");
+                    
+                    $fp=fopen($waste_basket,"a");
+                    
+                    fwrite($fp,$display_factors.$sepa."削除日時___".$del_date.PHP_EOL);
+                    
+                    fclose($fp);
+                    
+                    echo "<br>-------".$_POST["del_num"]."番の投稿を削除しました。"."-------";
+                    
+                }else{
+                    
+                    $fp=fopen($display_file,"a");//
+                    
+                    fwrite($fp,$display_factors.PHP_EOL);//
+                    
+                    fclose($fp);
+                    
+                }    
+                
+            }else{
+                
+                $fp=fopen($display_file,"a");
+                
+                fwrite($fp,$display_factors.PHP_EOL);//
+                
+                fclose($fp);
+                
+            }
+            
+        }        
+        
+    }else{
+        
+        echo "<br>-------削除番号とパスワードは、両方入力してください。-------";//
+        
+    }    
+    
+}        
+
+    
+elseif(isset($_POST["edit_submit"])&&isset($_POST["edit_number"])){//
+
+    $library_lastrow=array_pop($library_array);//
+    
+    $library_lastfactor=explode($sepa,$library_lastrow);//
+    
+    $display_lastrow=array_pop($display_array);//
+    
+    $display_lastfactor=explode($sepa,$display_lastrow);//
+
+    $edit_number=$_POST["edit_number"];//
+    
+    $edit_name=$_POST["name"];//
+    
+    $edit_com=$_POST["comment"];//
+    
+    $edit_date=date("Y/m/d H:i:s");//
+    
+
+    if(!empty($_POST["name"])&&!empty($_POST["comment"])){
+        
+        $display_array=file($display_file,FILE_IGNORE_NEW_LINES);
+
+        if(0<$_POST["edit_number"]&&$_POST["edit_number"]<=$display_lastfactor[0]){
+            
+            $fp=fopen($display_file,"w");//
+            
+            ftruncate($fp,0);//
+            
+            fclose($fp);
+            
+            foreach($display_array as $display_factors){
+                
+                $display_factor=explode($sepa,$display_factors);
+
+                if($display_factor[0]==$_POST["edit_number"]&&$display_factor[5]==$_POST["password"]){
+                    
+                    $edit_library_date=date("Y/m/d H:i:s");
+                    
+                    $edit_library_str=$display_factor[0].$sepa.$display_factor[1].$sepa.$display_factor[2].$sepa.$display_factor[3].$sepa.$display_factor[4].$sepa.$display_factor[5].$sepa."編集日時___".$edit_library_date; 
+                    
+                    $fp=fopen($edit_library_file,"a");
+                     
+                    fwrite($fp,$edit_library_str.PHP_EOL);
+                     
+                    fclose($fp);
+                    
+                    $display_factor[1]="【E】";
+                    
+                    $display_factor[2]=$_POST["name"];
+                    
+                    $display_factor[3]=$_POST["comment"];
+                    
+                }
+                
+                   $edit_str=$display_factor[0].$sepa.$display_factor[1].$sepa.$display_factor[2].$sepa.$display_factor[3].$sepa.$display_factor[4].$sepa.$display_factor[5]; 
+                       
+                     $fp=fopen($display_file,"a");
+                     
+                     fwrite($fp,$edit_str.PHP_EOL);
+                     
+                     fclose($fp);
+                     
+            }
+            
+    }else{
+                    
+        $edit_number=$library_lastfactor[0]+1;//
+                    
+        $edit_date=date("Y/m/d H:i:s");
+                    
+        $N_or_E="【N】";
+                    
+        $edit_str2=$edit_number.$sepa.$N_or_E.$sepa.$edit_name.$sepa.$edit_com.$sepa.$edit_date.$sepa.$_POST["password"];
+                    
+        $fp=fopen($library_file,"a");//
+                    
+        fwrite($fp,$edit_str2.PHP_EOL);//
+                    
+        fclose($fp);
+                    
+        $fp=fopen($display_file,"a");//
+                    
+        fwrite($fp,$edit_str2.PHP_EOL);//
+                    
+        fclose($fp);
+        
+    }
+
+    }else{
+        
+    echo "<br>-------編集を完了するには、投稿番号を選択して編集対象を表示し、名前・コメント・パスワードの<b>全て</b>を入力してから編集ボタンを押してください-------";
+    
+    }    
+
+}
+
+$fin_date=file($display_file,FILE_IGNORE_NEW_LINES);
+
+echo "<br><br>--------------------------------------------------";
+
+echo "<br>投稿番号_編集情報___名前_____コメント_____日時<br>";
+
+echo "--------------------------------------------------"."<br>";
+
+foreach($fin_date as $factors){
+    
+    $factor=explode($sepa,$factors);
+    
+    echo $factor[0]."_".$factor[1]."___<strong>".$factor[2]."</strong>______『".$factor[3]."』_____".$factor[4]."<br><br>";//ブラウザに表示
+}
+
+
+?>        
+</body>
+</html>
